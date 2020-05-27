@@ -26,8 +26,8 @@ const Toast: React.FC<ToastMessageData> = ({ messages }) => {
   });
 
   const autoRemoveToast = useCallback(
-    (id: string): void => {
-      setTimeout(() => removeToasd(id), 3000);
+    (id: string, duraction?: number): void => {
+      setTimeout(() => removeToasd(id), duraction || 3000);
     },
     [removeToasd],
   );
@@ -41,7 +41,7 @@ const Toast: React.FC<ToastMessageData> = ({ messages }) => {
             <strong>{item.title}</strong>
             <p>{item.Description}</p>
           </div>
-          {autoRemoveToast(item.id)}
+          {autoRemoveToast(item.id, item.duraction)}
           <button onClick={() => removeToasd(item.id)}>
             <FiXCircle size={16} />
           </button>

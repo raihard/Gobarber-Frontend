@@ -4,6 +4,7 @@ import Toast from '../components/Toast';
 
 export interface ToastMessage {
   id: string;
+  duraction?: number;
   type: 'info' | 'sucess' | 'error';
   title: string;
   Description?: string;
@@ -20,8 +21,11 @@ const ToastProvider: React.FC = ({ children }) => {
   const [messages, setMessages] = useState<ToastMessage[]>([]);
 
   const addToast = useCallback(
-    ({ title, type, Description }: Omit<ToastMessage, 'id'>) => {
-      setMessages([...messages, { id: uuid(), type, title, Description }]);
+    ({ title, type, duraction, Description }: Omit<ToastMessage, 'id'>) => {
+      setMessages([
+        ...messages,
+        { id: uuid(), type, title, duraction, Description },
+      ]);
     },
     [messages],
   );
