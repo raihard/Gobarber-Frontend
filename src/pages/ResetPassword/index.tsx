@@ -27,54 +27,57 @@ const ForgetPassword: React.FC = () => {
   const { addToast } = useToast();
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = useCallback(async (data: ResetProps) => {
-    try {
-      setLoading(true);
-      formRef.current?.setErrors({});
-      const schema = Yup.object().shape({
-        password: Yup.string().min(6, 'No mínimo 6 Digitos'),
-        passwordConfirm: Yup.string().oneOf(
-          [Yup.ref('password'), null],
-          'As senhas devem corresponder',
-        ),
-      });
-
-      await schema.validate(data, {
-        abortEarly: false,
-      });
-      const token = location.search.replace('?token=', '');
-      if (!token) new Error();
-
-      await api
-        .post('/password/reset', {
-          token,
-          password: data.password,
-          password_confirmation: data.passwordConfirm,
-        })
-        .then(response => {
-          History.push('/');
-
-          addToast({
-            title: 'Senha Alterada!',
-            type: 'sucess',
-            Description: 'Faça o seu login',
-          });
-        })
-        .catch(err => {
-          console.log(err);
-
-          addToast({
-            title: 'Atenção',
-            type: 'error',
-            Description: `Erro ao tentar alterar a senha, Tente novamente`,
-          });
+  const handleSubmit = useCallback(
+    async (data: ResetProps) => {
+      try {
+        setLoading(true);
+        formRef.current?.setErrors({});
+        const schema = Yup.object().shape({
+          password: Yup.string().min(6, 'No mínimo 6 Digitos'),
+          passwordConfirm: Yup.string().oneOf(
+            [Yup.ref('password'), null],
+            'As senhas devem corresponder',
+          ),
         });
-    } catch (error) {
-      formRef.current?.setErrors(getValidationErros(error));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+
+        await schema.validate(data, {
+          abortEarly: false,
+        });
+        const token = location.search.replace('?token=', '');
+        if (!token) new Error();
+
+        await api
+          .post('/password/reset', {
+            token,
+            password: data.password,
+            password_confirmation: data.passwordConfirm,
+          })
+          .then(response => {
+            History.push('/');
+
+            addToast({
+              title: 'Senha Alterada!',
+              type: 'sucess',
+              Description: 'Faça o seu login',
+            });
+          })
+          .catch(err => {
+            console.log(err);
+
+            addToast({
+              title: 'Atenção',
+              type: 'error',
+              Description: `Erro ao tentar alterar a senha, Tente novamente`,
+            });
+          });
+      } catch (error) {
+        formRef.current?.setErrors(getValidationErros(error));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [addToast, History, location],
+  );
 
   return (
     <Container>

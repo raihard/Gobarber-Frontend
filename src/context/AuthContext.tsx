@@ -12,13 +12,21 @@ interface SignInProps {
 //   // password: string;
 // }
 
+interface User {
+  avatar: string;
+  avatar_url: string;
+  email: string;
+  id: string;
+  name: string;
+}
+
 interface AuthState {
   token: string;
-  user: object;
+  user: User;
 }
 
 interface AuthContextData {
-  user: object;
+  user: User;
   SignIn(data: SignInProps): Promise<void>;
   // SignUp(data: SignUpProps): Promise<void>;
   SignOut(): void;
@@ -28,8 +36,8 @@ const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 const AuthProvider: React.FC = ({ children }) => {
   const [data, setData] = useState<AuthState>(() => {
-    const token = localStorage.getItem('@GithabExplore:token');
-    const user = localStorage.getItem('@GithabExplore:user');
+    const token = localStorage.getItem('@gobaber:token');
+    const user = localStorage.getItem('@gobaber:user');
     if (token && user) return { token, user: JSON.parse(user) };
     return {} as AuthState;
   });
@@ -39,9 +47,11 @@ const AuthProvider: React.FC = ({ children }) => {
       await api
         .post<AuthState>('sessions', { email, password })
         .then(response => {
-          const { token, user } = data;
-          localStorage.setItem('@GithabExplore:token', token);
-          localStorage.setItem('@GithabExplore:user', JSON.stringify(user));
+          console.log('response', response);
+
+          const { token, user } = response.data;
+          localStorage.setItem('@gobaber:token', token);
+          localStorage.setItem('@gobaber:user', JSON.stringify(user));
           setData({ token, user });
         });
     },
@@ -49,8 +59,8 @@ const AuthProvider: React.FC = ({ children }) => {
   );
 
   const SignOut = useCallback(() => {
-    localStorage.removeItem('@GithabExplore:token');
-    localStorage.removeItem('@GithabExplore:user');
+    localStorage.removeItem('@gobaber:token');
+    localStorage.removeItem('@gobaber:user');
     setData({} as AuthState);
   }, []);
 
