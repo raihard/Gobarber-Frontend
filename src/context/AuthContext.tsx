@@ -27,9 +27,10 @@ interface AuthState {
 
 interface AuthContextData {
   user: User;
+  token: string;
   SignIn(data: SignInProps): Promise<void>;
-  // SignUp(data: SignUpProps): Promise<void>;
   SignOut(): void;
+  updateUser(user: User): Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -38,25 +39,27 @@ const AuthProvider: React.FC = ({ children }) => {
   const [data, setData] = useState<AuthState>(() => {
     const token = localStorage.getItem('@gobaber:token');
     const user = localStorage.getItem('@gobaber:user');
-    if (token && user) return { token, user: JSON.parse(user) };
+    if (token && user) {
+      api.defaults.headers.authorization = `Bearer ${token}`;
+      return { token, user: JSON.parse(user) };
+    }
     return {} as AuthState;
   });
 
-  const SignIn = useCallback(
-    async ({ email, password }) => {
-      await api
-        .post<AuthState>('sessions', { email, password })
-        .then(response => {
-          console.log('response', response);
+  const SignIn = useCallback(async ({ email, password }) => {
+    await api
+      .post<AuthState>('sessions', { email, password })
+      .then(response => {
+        console.log('response', response);
 
-          const { token, user } = response.data;
-          localStorage.setItem('@gobaber:token', token);
-          localStorage.setItem('@gobaber:user', JSON.stringify(user));
-          setData({ token, user });
-        });
-    },
-    [data],
-  );
+        const { token, user } = response.data;
+        localStorage.setItem('@gobaber:token', token);
+        localStorage.setItem('@gobaber:user', JSON.stringify(user));
+
+        api.defaults.headers.authorization = `Bearer ${token}`;
+        setData({ token, user });
+      });
+  }, []);
 
   const SignOut = useCallback(() => {
     localStorage.removeItem('@gobaber:token');
@@ -64,8 +67,24 @@ const AuthProvider: React.FC = ({ children }) => {
     setData({} as AuthState);
   }, []);
 
+  const updateUser = useCallback(
+    async user => {
+      localStorage.setItem('@gobaber:user', JSON.stringify(user));
+      setData({ token: data.token, user });
+    },
+    [data],
+  );
+
   return (
-    <AuthContext.Provider value={{ user: data.user, SignIn, SignOut }}>
+    <AuthContext.Provider
+      value={{
+        user: data.user,
+        token: data.token,
+        SignIn,
+        SignOut,
+        updateUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

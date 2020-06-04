@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Link, useHistory } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { FiLogIn, FiMail } from 'react-icons/fi';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
@@ -22,50 +22,53 @@ interface ForgotProps {
 const ForgetPassword: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
   const { addToast } = useToast();
-  const History = useHistory();
+
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = useCallback(async (data: ForgotProps) => {
-    try {
-      setLoading(true);
-      formRef.current?.setErrors({});
-      const schema = Yup.object().shape({
-        email: Yup.string()
-          .required('Email obrigatório')
-          .email('Digite um e-mail válido'),
-      });
-
-      await schema.validate(data, {
-        abortEarly: false,
-      });
-      await api
-        .post('/password/forgot', { email: data.email })
-        .then(response => {
-          // History.push('/');
-          formRef.current?.reset();
-          addToast({
-            title: 'Solicitação enviada!',
-            type: 'sucess',
-            duraction: 10000,
-            Description:
-              'Faça a confirmação da solicitação reset de senha, no link enviado para o seu e-mail!!!',
-          });
-        })
-        .catch(err => {
-          console.log(err);
-
-          addToast({
-            title: 'Atenção',
-            type: 'error',
-            Description: `[${err}] Erro ao tentar enviar o email, Tente novamente`,
-          });
+  const handleSubmit = useCallback(
+    async (data: ForgotProps) => {
+      try {
+        setLoading(true);
+        formRef.current?.setErrors({});
+        const schema = Yup.object().shape({
+          email: Yup.string()
+            .required('Email obrigatório')
+            .email('Digite um e-mail válido'),
         });
-    } catch (error) {
-      formRef.current?.setErrors(getValidationErros(error));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+
+        await schema.validate(data, {
+          abortEarly: false,
+        });
+        await api
+          .post('/password/forgot', { email: data.email })
+          .then(response => {
+            // History.push('/');
+            formRef.current?.reset();
+            addToast({
+              title: 'Solicitação enviada!',
+              type: 'sucess',
+              duraction: 10000,
+              Description:
+                'Faça a confirmação da solicitação reset de senha, no link enviado para o seu e-mail!!!',
+            });
+          })
+          .catch(err => {
+            console.log(err);
+
+            addToast({
+              title: 'Atenção',
+              type: 'error',
+              Description: `[${err}] Erro ao tentar enviar o email, Tente novamente`,
+            });
+          });
+      } catch (error) {
+        formRef.current?.setErrors(getValidationErros(error));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [addToast],
+  );
 
   return (
     <Container>
